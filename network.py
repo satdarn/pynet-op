@@ -7,10 +7,6 @@ def mse(y_true, y_pred):
 def mse_prime(y_true, y_pred):
     return 2 * (y_pred - y_true) / np.size(y_true)
 
-def normalization(data):
-    return (data/255)
-
-
 class Layer:
     def __init__(self):
         self.input = None
@@ -89,11 +85,11 @@ class Network:
             output = layer.forward(output)
         return output
 
-    def train(self, loss, loss_prime, xtrain, ytrain, epochs = 100, batch_size = 10, learning_rate = 0.01, one_hot = False, verbose = False):
+    def train(self, loss, loss_prime, xtrain, ytrain, epoachs = 100, batch_size = 10, learning_rate = 0.01, one_hot = False, verbose = False):
         n_samples = len(xtrain)
         n_batches = int(n_samples/batch_size)
         errors= []
-        for e in range(epochs):
+        for e in range(epoachs):
             error = 0 
             for i in range(n_batches):
                 grad = np.zeros((self.outputs, 1))
@@ -115,6 +111,7 @@ class Network:
             if verbose:
                 print(f"epoachs:{e+1}, error={error}")
         return errors
+
     def test(self, xtest, ytest):
         print("----------------------TESTING----------------------")
         correct = 0

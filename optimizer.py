@@ -1,4 +1,7 @@
 from network import *
+import numpy as np
+from random import randint
+
 class optimizer_settings:
     def __init__(self, algorithm, learning_rate = False, batch_size = False, activation = False):
         self.algorithm = algorithm
@@ -70,11 +73,38 @@ def change_network_activations(network, activation):
             network.network[i] = activation
 
 def grid_optimizer(network, x_train, y_train, epoachs, learning_rates, batch_sizes, activations):
-    error_matrix = np.zeros((len(activations), len(learning_rates), len(batch_sizes)))
+    lowest_error = 10000
+    optimal_parameters = {}
     for i, activ in enumerate(activations):
         for j, rate in enumerate(learning_rates):
             for k, batch in enumerate(batch_sizes):
                 change_network_activations(network, activ)
-                error_matrix[i, j, k] = network.train(mse, mse_prime, x_train, y_train, epochs = 10, learning_rate=rate, batch_size=batch, verbose=False)[-1]
-    min_index_flat = np.argmin(error_matrix)
-    print(min_index_flat)
+                error = network.train(mse, mse_prime, x_train, y_train, epoachs = epoachs, learning_rate=rate, batch_size=batch, verbose=False)[-1]
+                if error < lowest_error:
+                    lowest_error = error
+                    optimal_parameters = {"activation": activ, "learning_rate": rate, "batch_size": batch}
+    return optimal_parameters
+
+def create_params(learning_rates, batch_sizes, activations):
+    param_list=[]
+    for i, rate in enumerate(learning_rates):
+        for j, activ in enumerate(activations):
+            for k, batch in enumerate(batch_sizes):
+                param_list.append( (rate, activ, batch))
+    return param_list
+
+
+def random_optimizer(network, x_train, y_train, epoachs, n_random_checks, learning_rates, batch_sizes, activations):
+    param_list = create_params(learning_rates, batch_sizes, activations)
+    lowest_error = 10000
+    print(len(param_list))
+    for n in range(0,n_random_checks):
+        print(n)
+        n_param = len(param_list)
+        rate, activ, batch = param_list.pop(randint(0, n_param-1))
+        change_network_activations(network, activ)
+        error = network.train(mse, mse_prime, x_train, y_train, epoachs = epoachs, learning_rate=rate, batch_size=batch, verbose=False)[-1]
+        if error < lowest_error:
+            lowest_error = error
+            optimal_parameters = {"activation": activ, "learning_rate": rate, "batch_size": batch}
+    return optimal_parameters, lowest_error
